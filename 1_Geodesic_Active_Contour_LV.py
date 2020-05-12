@@ -9,7 +9,7 @@
 # Reference: ItkSoftwareGuide
 # =============================================================================
 
-import sys  # restore
+
 import itk
 
 
