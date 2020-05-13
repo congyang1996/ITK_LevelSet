@@ -9,19 +9,21 @@
 # Reference: ItkSoftwareGuide
 # =============================================================================
 
-import sys  # restore
 import itk
 
 
 inputFileName = 'p01_sag.jpg'
 outputFileName = 'GAC_result.nii'
-seedPosX = 300
-seedPosY = 330
+seedPoss = (
+            (300, 330), 
+            #(330, 360), 
+            #(400, 420)
+            )  # ((x1, y1), (x2, y2), ...)
 
 initialDistance = float(5.0)
 sigma = float(1.0)
-alpha = float(-0.7)
-beta = float(3.0)
+alpha = float(-0.3)
+beta = float(2.8)
 propagationScaling = float(10.0)
 numberOfIterations = 1000
 seedValue = -initialDistance
@@ -104,18 +106,21 @@ thresholder.SetInput(geodesicActiveContour.GetOutput())
 
 
 # Set seed
-seedPosition = itk.Index[Dimension]()
-seedPosition[0] = seedPosX
-seedPosition[1] = seedPosY
-
-node = itk.LevelSetNode[InputPixelType, Dimension]()
-node.SetValue(seedValue)
-node.SetIndex(seedPosition)
-
 seeds = itk.VectorContainer[
     itk.UI, itk.LevelSetNode[InputPixelType, Dimension]].New()
 seeds.Initialize()
-seeds.InsertElement(0, node)
+
+for i, seedpos in enumerate(seedPoss):
+    x, y = seedpos
+    seedPosition = itk.Index[Dimension]()
+    seedPosition[0] = x
+    seedPosition[1] = y
+
+    node = itk.LevelSetNode[InputPixelType, Dimension]()
+    node.SetValue(seedValue)
+    node.SetIndex(seedPosition)
+
+    seeds.InsertElement(i, node)
 
 fastMarching.SetTrialPoints(seeds)
 fastMarching.SetSpeedConstant(1.0)
@@ -183,7 +188,7 @@ writer.Update()
 
 
 print('\n================== Info ==================\n')
-print('SeedPos: x={:0>3d}, y={:0>3d}'.format(seedPosX, seedPosY))
+print('SeedPos: ', seedPoss)
 print('Parameters: alpha={:.2f}, beta={:.2f}, propagationScaling={:.2f}'.format(alpha, beta, propagationScaling))
 
 print(
